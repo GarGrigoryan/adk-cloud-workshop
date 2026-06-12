@@ -1,0 +1,4 @@
+node_modules/
+shared/data/*.db
+.env
+dist/
