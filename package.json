@@ -5,10 +5,10 @@
   "workspaces": ["shared", "agents/*"],
   "scripts": {
     "seed": "tsx shared/src/seed.ts",
-    "dev:inventory": "tsx agents/inventory/src/server.ts",
-    "dev:orders": "tsx agents/orders/src/server.ts",
-    "dev:pricing": "tsx agents/pricing/src/server.ts",
-    "dev:orchestrator": "tsx agents/orchestrator/src/server.ts",
+    "dev:inventory": "tsx --env-file-if-exists=.env agents/inventory/src/server.ts",
+    "dev:orders": "tsx --env-file-if-exists=.env agents/orders/src/server.ts",
+    "dev:pricing": "tsx --env-file-if-exists=.env agents/pricing/src/server.ts",
+    "dev:orchestrator": "tsx --env-file-if-exists=.env agents/orchestrator/src/server.ts",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
