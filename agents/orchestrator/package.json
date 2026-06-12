@@ -1,0 +1,10 @@
+{
+  "name": "@techparts/agent-orchestrator",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@google/adk": "^1.2.0",
+    "@techparts/shared": "*"
+  }
+}
