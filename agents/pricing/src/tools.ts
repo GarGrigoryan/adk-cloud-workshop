@@ -12,15 +12,34 @@ import { openDb } from '@techparts/shared';
 // test/tools.test.ts describe the exact shapes you need to return.
 
 export function getOurPrice(input: { skuOrName: string }): any {
-  // TODO: return `{ sku, name, ourPrice }`, or `{ error }` if not found.
-  throw new Error('Not implemented: getOurPrice');
+  const db = openDb();
+
+  let product = db.get(
+    'SELECT sku, name, price AS ourPrice FROM products WHERE UPPER(sku) = UPPER(?)',
+    [input.skuOrName]
+  );
+
+  if (!product) {
+    product = db.get(
+      'SELECT sku, name, price AS ourPrice FROM products WHERE name LIKE ? LIMIT 1',
+      [`%${input.skuOrName}%`]
+    );
+  }
+
+  if (!product) {
+    return { error: `Product matching '${input.skuOrName}' could not be found.` };
+  }
+
+  return product;
 }
 
 export const getOurPriceTool = new FunctionTool({
   name: 'get_our_price',
-  description: 'TODO: describe this tool so the model knows when and how to call it.',
+  description: "Retrieve TechParts' selling price, official product name, and stock keeping unit (SKU) by passing either an exact SKU code or a partial product name.",
   parameters: z.object({
-    // TODO: define the parameters (e.g. skuOrName) with .describe() hints.
+    skuOrName: z.string().describe('The strict alphanumeric SKU identifier or a descriptive segment of the product name.'),
   }),
-  execute: async () => getOurPrice({ skuOrName: '' }),
+  execute: async (args) => {
+    return getOurPrice(args);
+  },
 });
