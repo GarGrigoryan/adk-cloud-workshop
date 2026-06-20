@@ -12,6 +12,7 @@ import { openDb } from '@techparts/shared';
 // Use openDb() to query the database (see shared/src/db.ts), and let the tests
 // in test/tools.test.ts describe the exact shapes you need to return.
 
+
 export function searchProducts(input: { query?: string; category?: string; maxPrice?: number }): { products: any[] } {
   const db = openDb();
   
