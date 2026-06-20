@@ -15,7 +15,7 @@ import { openDb } from '@techparts/shared';
 
 export function searchProducts(input: { query?: string; category?: string; maxPrice?: number }): { products: any[] } {
   const db = openDb();
-  
+
   let queryStr = 'SELECT * FROM products WHERE 1=1';
   const params: any[] = [];
 
@@ -34,17 +34,16 @@ export function searchProducts(input: { query?: string; category?: string; maxPr
     params.push(input.maxPrice);
   }
 
-  const products = db.all(queryStr, params);
+  const products = db.prepare(queryStr).all(...params);
   return { products: products || [] };
 }
 
 export function getStock(input: { sku: string }): any {
   const db = openDb();
-  
-  const product = db.get(
-    'SELECT * FROM products WHERE UPPER(sku) = UPPER(?)',
-    [input.sku]
-  );
+
+  const product = db.prepare(
+    'SELECT * FROM products WHERE UPPER(sku) = UPPER(?)'
+  ).get(input.sku);
 
   if (!product) {
     return { error: `Product with SKU ${input.sku} not found.` };
