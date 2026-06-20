@@ -2,30 +2,15 @@ import { FunctionTool } from '@google/adk';
 import { z } from 'zod';
 import { openDb } from '@techparts/shared';
 
-// TODO(workshop): Implement the pricing tool.
-//
-// Build one tool backed by the SQLite `products` table:
-//   get_our_price — TechParts' own selling price for a product, by SKU or
-//   (partial) product name. Fall back to a name search when no SKU matches.
-//
-// Use openDb() to query the database (see shared/src/db.ts). The tests in
-// test/tools.test.ts describe the exact shapes you need to return.
-
 export function getOurPrice(input: { skuOrName: string }): any {
   const db = openDb();
 
-  let product = db
-    .prepare(
-      'SELECT sku, name, price AS ourPrice FROM products WHERE UPPER(sku) = UPPER(?)'
-    )
-    .get(input.skuOrName);
+  const skuStmt = db.prepare('SELECT sku, name, price AS ourPrice FROM products WHERE UPPER(sku) = UPPER(?)');
+  let product = skuStmt.get(input.skuOrName);
 
   if (!product) {
-    product = db
-      .prepare(
-        'SELECT sku, name, price AS ourPrice FROM products WHERE name LIKE ? LIMIT 1'
-      )
-      .get(`%${input.skuOrName}%`);
+    const nameStmt = db.prepare('SELECT sku, name, price AS ourPrice FROM products WHERE name LIKE ? LIMIT 1');
+    product = nameStmt.get(`%${input.skuOrName}%`);
   }
 
   if (!product) {
@@ -41,7 +26,5 @@ export const getOurPriceTool = new FunctionTool({
   parameters: z.object({
     skuOrName: z.string().describe('The strict alphanumeric SKU identifier or a descriptive segment of the product name.'),
   }),
-  execute: async (args) => {
-    return getOurPrice(args);
-  },
+  execute: async (args) => getOurPrice(args),
 });
