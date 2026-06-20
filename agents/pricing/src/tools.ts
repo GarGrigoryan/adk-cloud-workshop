@@ -14,16 +14,18 @@ import { openDb } from '@techparts/shared';
 export function getOurPrice(input: { skuOrName: string }): any {
   const db = openDb();
 
-  let product = db.get(
-    'SELECT sku, name, price AS ourPrice FROM products WHERE UPPER(sku) = UPPER(?)',
-    [input.skuOrName]
-  );
+  let product = db
+    .prepare(
+      'SELECT sku, name, price AS ourPrice FROM products WHERE UPPER(sku) = UPPER(?)'
+    )
+    .get(input.skuOrName);
 
   if (!product) {
-    product = db.get(
-      'SELECT sku, name, price AS ourPrice FROM products WHERE name LIKE ? LIMIT 1',
-      [`%${input.skuOrName}%`]
-    );
+    product = db
+      .prepare(
+        'SELECT sku, name, price AS ourPrice FROM products WHERE name LIKE ? LIMIT 1'
+      )
+      .get(`%${input.skuOrName}%`);
   }
 
   if (!product) {
