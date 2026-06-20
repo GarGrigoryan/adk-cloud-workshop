@@ -12,31 +12,67 @@ import { openDb } from '@techparts/shared';
 // Use openDb() to query the database (see shared/src/db.ts), and let the tests
 // in test/tools.test.ts describe the exact shapes you need to return.
 
+
 export function searchProducts(input: { query?: string; category?: string; maxPrice?: number }): { products: any[] } {
-  // TODO: query the `products` table and return `{ products: [...] }`.
-  throw new Error('Not implemented: searchProducts');
+  const db = openDb();
+  
+  let queryStr = 'SELECT * FROM products WHERE 1=1';
+  const params: any[] = [];
+
+  if (input.query) {
+    queryStr += ' AND (name LIKE ? OR category LIKE ? OR sku LIKE ?)';
+    params.push(`%${input.query}%`, `%${input.query}%`, `%${input.query}%`);
+  }
+
+  if (input.category) {
+    queryStr += ' AND category = ?';
+    params.push(input.category);
+  }
+
+  if (input.maxPrice !== undefined) {
+    queryStr += ' AND price <= ?';
+    params.push(input.maxPrice);
+  }
+
+  const products = db.all(queryStr, params);
+  return { products: products || [] };
 }
 
 export function getStock(input: { sku: string }): any {
-  // TODO: look up one product by SKU (case-insensitive) and return its stock
-  // and warehouse, or `{ error }` if the SKU is unknown.
-  throw new Error('Not implemented: getStock');
+  const db = openDb();
+  
+  const product = db.get(
+    'SELECT * FROM products WHERE UPPER(sku) = UPPER(?)',
+    [input.sku]
+  );
+
+  if (!product) {
+    return { error: `Product with SKU ${input.sku} not found.` };
+  }
+
+  return product;
 }
 
 export const searchProductsTool = new FunctionTool({
   name: 'search_products',
-  description: 'TODO: describe this tool so the model knows when and how to call it.',
+  description: 'Search for products in the inventory by free text query, category, and/or maximum price thresholds.',
   parameters: z.object({
-    // TODO: define the parameters (e.g. query?, category?, maxPrice?) with .describe() hints.
+    query: z.string().optional().describe('Free text search term to match against product name or metadata.'),
+    category: z.string().optional().describe('Filter products by a specific category name (e.g., "headphones").'),
+    maxPrice: z.number().optional().describe('Filter products to a maximum price ceiling.'),
   }),
-  execute: async () => searchProducts({}),
+  execute: async (args) => {
+    return searchProducts(args);
+  },
 });
 
 export const getStockTool = new FunctionTool({
   name: 'get_stock',
-  description: 'TODO: describe this tool so the model knows when and how to call it.',
+  description: 'Retrieve the current stock level, warehouse location, and product information for a specific product SKU.',
   parameters: z.object({
-    // TODO: define the parameters (e.g. sku) with .describe() hints.
+    sku: z.string().describe('The unique Stock Keeping Unit (SKU) identifier for the product (case-insensitive).'),
   }),
-  execute: async () => getStock({ sku: '' }),
+  execute: async (args) => {
+    return getStock(args);
+  },
 });
